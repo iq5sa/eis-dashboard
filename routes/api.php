@@ -15,10 +15,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::group(["prefix"=>"user"],function (){
-    Route::post('/create',[UsersController::class,"create"]);
-    Route::post('/login',[UsersController::class,"login"]);
-    Route::get('/all',[UsersController::class,"all"])->middleware("auth:sanctum");
+Route::controller(UsersController::class)->group(function (){
+    Route::group(["prefix"=>"user"],function (){
+        Route::post('/create',"create");
+        Route::post('/login',"login");
+        Route::get('/all',"all")->middleware("auth:sanctum");
+    });
 
 });
 Route::middleware('auth:sanctum')->group(function (){
