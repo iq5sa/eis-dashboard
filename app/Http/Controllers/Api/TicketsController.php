@@ -28,7 +28,7 @@ class TicketsController extends BaseController
         else
 
         $user = User::find($request->user_id);
-        if ($user !=null && $user->ticket_limit < 5){
+        if ($user !=null && $user->ticket_limit < 10){
             $ticket = new Ticket();
             $ticket->title = $request->title;
             $ticket->department = $request->department;
@@ -50,11 +50,11 @@ class TicketsController extends BaseController
     }
 
 
-    public function getTickets($user_id){
+    public function getTickets(Request $request){
 
-        $tickets = DB::table("tickets")->where("user_id","=",$user_id)->take(5)->get();
+        $tickets = DB::table("tickets")->where("user_id","=",$request->user()->id)->orderBy("id","desc")->take(10)->get();
 
-        return $this->sendResponse($tickets,"get ticket successfully");
+        return $this->sendResponse(["tickets"=>$tickets,"ticketCount"=>$request->user()->ticket_limit],"get ticket successfully");
 
     }
 }

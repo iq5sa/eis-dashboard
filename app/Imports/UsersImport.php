@@ -28,6 +28,7 @@ class UsersImport implements ToCollection
             $student_ar_fullname = $row[4];
             $grad = $row[5];
 
+
             $users = User::create([
                 "role_id"=>3,
                 "name"=>$father_name . " " . $last_name,
@@ -41,7 +42,9 @@ class UsersImport implements ToCollection
             $student->name = $student_ar_fullname;
             $student->parents_id = $users->id;
             $student->level_id = $grad;
+            $student->class_id = $row[6];
             $student->sn_number = $sn_number;
+            $student->en_name = $first_name . " " . $father_name . " " . $last_name;
             $student->save();
 
         }

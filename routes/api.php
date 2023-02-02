@@ -1,10 +1,14 @@
 <?php
 
+use App\Http\Controllers\Api\ActivitiesController;
 use App\Http\Controllers\Api\AnnouncementsController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\HomeworkController;
+use App\Http\Controllers\Api\SlidersController;
 use App\Http\Controllers\Api\TicketsController;
+use App\Http\Controllers\Api\Timetable;
 use App\Http\Controllers\Api\UsersController;
+use App\Http\Controllers\FcmTokensController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -24,7 +28,7 @@ Route::controller(UsersController::class)->group(function (){
         Route::post('/create',"create");
         Route::post('/login',"login");
         Route::get('/all',"all")->middleware("auth:sanctum");
-        Route::get("/profile/{id}","profile")->middleware("auth:sanctum");
+        Route::get("/profile","profile")->middleware("auth:sanctum");
     });
 
     //Homework
@@ -33,14 +37,27 @@ Route::controller(UsersController::class)->group(function (){
 
     //Tickets
     Route::post("/ticket/submit",[TicketsController::class,"store"])->middleware("auth:sanctum");
-    Route::get("/tickets/user/{user_id}",[TicketsController::class,"getTickets"])->middleware("auth:sanctum");
+    Route::get("/tickets",[TicketsController::class,"getTickets"])->middleware("auth:sanctum");
 
 
     //book appointment
     Route::post("/appointment/book",[AppointmentController::class,"store"])->middleware("auth:sanctum");
+    Route::get("/appointments",[AppointmentController::class,"show"])->middleware("auth:sanctum");
 
     //Announcements
     Route::get("/announcements",[AnnouncementsController::class,"getAll"])->middleware("auth:sanctum");
+
+    //Announcements
+    Route::get("/activities",[ActivitiesController::class,"show"]);
+
+    //Sliders
+    Route::get("/sliders",[SlidersController::class,"show"]);
+
+    //Timetable
+    Route::get("/timetable",[Timetable::class,"show"])->middleware("auth:sanctum");
+
+    //Fcm Tokens *save
+    Route::post("/fcm-save",[FcmTokensController::class,"store"]);
 
 });
 Route::middleware('auth:sanctum')->group(function (){

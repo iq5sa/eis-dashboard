@@ -13,7 +13,7 @@ use TCG\Voyager\Models\Role;
 
 class UsersController extends BaseController
 {
-    //
+
 
     public function create(Request $request){
 
@@ -39,6 +39,8 @@ class UsersController extends BaseController
 
 
     public function login(Request $request){
+
+
         if(Auth::attempt(['login_code' => $request->email, 'password' => $request->password])){
             $user = Auth::user();
             $success['token'] =  $user->createToken('eisToken')->plainTextToken;
@@ -47,6 +49,11 @@ class UsersController extends BaseController
             $success['role'] =  Role::find($user->role_id)->name;
             $success['email'] =  $user->email;
             $success['avatar'] =  $user->avatar;
+            $success['login_code'] =  $user->login_code;
+            $success['en_name'] =  $user->en_name;
+
+            $user->fcm_token = $request->fcm_token;
+            $user->save();
 
 
             return $this->sendResponse($success, 'User login successfully.');
@@ -62,19 +69,19 @@ class UsersController extends BaseController
 
     }
 
-    public function profile($id){
-        $id = intval($id);
-        $user = User::find($id);
+    public function profile(Request $request){
 
 
-        $students = DB::table("students")->where("parents_id","=",$id)
+
+        $students = DB::table("students")->where("parents_id","=",$request->user()->id)
         ->join("grades","students.level_id","=","grades.id")
-        ->select(["students.id","students.name","students.sn_number","students.photo","grades.title as grade"])->get();
+            ->join("classrooms","students.class_id","=","classrooms.id")
+        ->select(["students.id","students.name","students.sn_number","students.photo","grades.title as grade","classrooms.title as classroom","students.en_name"])->get();
 
 
 
 
-        return $this->sendResponse(["user"=>$user,"students"=>$students],"success");
+        return $this->sendResponse(["user"=>$request->user(),"students"=>$students],"success");
 //        return ["userData"=>$user,"students"=>$students];
     }
 }

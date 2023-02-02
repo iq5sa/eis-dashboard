@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Appointment;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class AppointmentController extends BaseController
@@ -17,8 +18,7 @@ class AppointmentController extends BaseController
         $validator = Validator::make($request->all(),[
 
             "subject"=>["required","max:255"],
-            "with"=>["required","max:255"],
-            "user_id"=>["required","max:255"],
+            "desc"=>["required"]
         ]);
 
         if ($validator->fails())
@@ -27,10 +27,21 @@ class AppointmentController extends BaseController
 
         $appointment = new Appointment();
         $appointment->subject = $request->subject;
-        $appointment->with = $request->with;
-        $appointment->user_id = $request->user_id;
+        $appointment->user_id = $request->user()->id;
+        $appointment->desc = $request->desc;
         $appointment->save();
 
         return $this->sendResponse($appointment,"Appointment has been sent");
+    }
+
+
+
+    public function show(Request $request){
+
+
+        $appointment = DB::table("appointments")->where("user_id","=",$request->user()->id)->orderBy("id","desc");
+
+        return $this->sendResponse($appointment->get(),"Appointments get successfully");
+
     }
 }
