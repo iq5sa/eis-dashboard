@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\FcmTokens;
 use App\Models\User;
-use App\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -52,8 +51,13 @@ class UsersController extends BaseController
             $success['login_code'] =  $user->login_code;
             $success['en_name'] =  $user->en_name;
 
-            $user->fcm_token = $request->fcm_token;
+//            $user->fcm_token = $request->fcm_token;
             $user->save();
+
+            $fcmTokens = new FcmTokens();
+            $fcmTokens->fcm_token = $request->fcm_token;
+            $fcmTokens->parents_id = $success["id"];
+            $fcmTokens->save();
 
 
             return $this->sendResponse($success, 'User login successfully.');
@@ -75,7 +79,7 @@ class UsersController extends BaseController
 
         $students = DB::table("students")->where("parents_id","=",$request->user()->id)
         ->join("grades","students.level_id","=","grades.id")
-            ->join("classrooms","students.class_id","=","classrooms.id")
+            ->leftJoin("classrooms","students.class_id","=","classrooms.id")
         ->select(["students.id","students.name","students.sn_number","students.photo","grades.title as grade","classrooms.title as classroom","students.en_name"])->get();
 
 
@@ -83,5 +87,34 @@ class UsersController extends BaseController
 
         return $this->sendResponse(["user"=>$request->user(),"students"=>$students],"success");
 //        return ["userData"=>$user,"students"=>$students];
+    }
+
+    public function getStudentAcademy(Request $request){
+
+        $parent_id = $request->user()->id;
+        $grades = [];
+        $classrooms = [];
+
+        $findStudents = DB::table("students")->where("parents_id",$parent_id)
+            ->join("grades","students.level_id","=","grades.id")
+            ->leftJoin("classrooms","students.class_id","=","classrooms.id")
+            ->select(["grades.title as grade_title","grades.id as grade_id","classrooms.title as classroom_title","classrooms.id as classroom_id"])
+            ->get();
+
+        foreach ($findStudents as $student){
+            $grades[] = [
+                "id"=>$student->grade_id,
+                "title"=>$student->grade_title,
+            ];
+
+            $classrooms[] = [
+                "id"=>$student->classroom_id,
+                "title"=>$student->classroom_title,
+            ];
+        }
+
+
+        return response()->json(["grades"=>$grades,"classrooms"=>$classrooms]);
+
     }
 }

@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AnnouncementsController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\HomeworkController;
 use App\Http\Controllers\Api\SlidersController;
+use App\Http\Controllers\Api\StudentBehaviorController;
 use App\Http\Controllers\Api\TicketsController;
 use App\Http\Controllers\Api\Timetable;
 use App\Http\Controllers\Api\UsersController;
@@ -29,6 +30,7 @@ Route::controller(UsersController::class)->group(function (){
         Route::post('/login',"login");
         Route::get('/all',"all")->middleware("auth:sanctum");
         Route::get("/profile","profile")->middleware("auth:sanctum");
+        Route::get("/academy","getStudentAcademy")->middleware("auth:sanctum");
     });
 
     //Homework
@@ -58,6 +60,10 @@ Route::controller(UsersController::class)->group(function (){
 
     //Fcm Tokens *save
     Route::post("/fcm-save",[FcmTokensController::class,"store"]);
+
+    //
+    Route::get("/student-behavior",[StudentBehaviorController::class,"get"])->middleware("auth:sanctum");
+    Route::get("/student-medical-status",[\App\Http\Controllers\Api\StudentMedicalStatusController::class,"get"])->middleware("auth:sanctum");
 
 });
 Route::middleware('auth:sanctum')->group(function (){

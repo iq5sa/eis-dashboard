@@ -15,17 +15,19 @@ class Timetable extends BaseController
         $timetable_type = $request->input("timetable_type");
         $grade_id = $request->input("grade_id");
         $classroom_id = $request->input("classroom_id");
+        
+        if ($classroom_id =="0"){
+            $classroom_id = null;
+        }
 
         $timetables = DB::table("timetables")->where([
            ["type","=",$timetable_type],
-           ["grade_id","=",$grade_id]
-        ]);
+           ["grade_id","=",$grade_id],
+           ["classroom_id","=",$classroom_id]
+        ])->orderBy("id","DESC")->first();
 
-        if ($classroom_id !=0 || !empty($classroom_id)){
-            $timetables->where("classroom_id","=",$classroom_id);
-        }
 
-        $timetables->orderBy("id","DESC")->first();
+
 
         return $this->sendResponse($timetables,"Get timetable successfully");
 
