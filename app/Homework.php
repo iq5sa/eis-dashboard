@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class Homework extends Model
 {
+    public $allow_export_all = true;
     public function getDateAttribute($date)
     {
         return $this->attributes['date'] = Carbon::parse($date)->format('d-m-Y');

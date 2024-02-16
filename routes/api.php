@@ -66,6 +66,15 @@ Route::controller(UsersController::class)->group(function (){
     Route::get("/student-medical-status",[\App\Http\Controllers\Api\StudentMedicalStatusController::class,"get"])->middleware("auth:sanctum");
 
 });
+
+
+Route::get("ticketLimit/reset/{user_id}",function ($user_id){
+
+   $user = \App\Models\User::find($user_id);
+   $user->ticket_limit = 0;
+   $user->save();
+   return redirect()->back()->with("status","success");
+})->name("ticket.limit.reset");
 Route::middleware('auth:sanctum')->group(function (){
 
 

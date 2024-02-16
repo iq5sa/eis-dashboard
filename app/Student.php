@@ -15,4 +15,14 @@ class Student extends Model
        return $this->belongsTo(User::class,"parents_id");
     }
 
+    public function grade(){
+        return $this->belongsTo(Grade::class,"level_id");
+    }
+
+    public function classroom(){
+        return $this->belongsTo(Classroom::class,"class_id");
+    }
+
+
+
 }

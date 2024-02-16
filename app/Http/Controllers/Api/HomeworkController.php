@@ -18,7 +18,10 @@ class HomeworkController extends BaseController
         $grades = [];
         $classrooms = [];
 
-        $db = DB::table("students")->where("parents_id", "=", $request->user()->id)->select(["level_id", "class_id"])->get();
+        $db = DB::table("students")->where("parents_id", "=", $request->user()->id)
+
+
+            ->select(["level_id", "class_id"])->get();
 
         foreach ($db as $grade) {
             $grades[] = $grade->level_id;
@@ -34,6 +37,7 @@ class HomeworkController extends BaseController
         $homework = DB::table("homework");
         $homework->whereIn("homework.grade_id", $grades);
         $homework->whereIn("homework.classroom_id",$classrooms);
+        $homework->where("homework.status","=",1);
 
 
 

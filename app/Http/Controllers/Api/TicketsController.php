@@ -20,7 +20,6 @@ class TicketsController extends BaseController
             "title"=>["required","max:255"],
             "department"=>["required","max:255"],
             "desc"=>["required","max:500"],
-            "user_id"=>["required","max:11"],
         ]);
 
         if ($validate->fails())
@@ -33,7 +32,7 @@ class TicketsController extends BaseController
             $ticket->title = $request->title;
             $ticket->department = $request->department;
             $ticket->desc = $request->desc;
-            $ticket->user_id = $request->user_id;
+            $ticket->user_id = $request->user()->id;
             $ticket->save();
 
             $user->ticket_limit = $user->ticket_limit + 1;

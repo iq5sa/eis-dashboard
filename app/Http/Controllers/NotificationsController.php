@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\FcmNotificationsJob;
 use App\Models\FcmTokens;
 use App\Models\User;
 use App\Student;
+use App\Utilities\FirebaseFcm;
+use App\Utilities\NotificationsData;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use TCG\Voyager\Events\BreadDataAdded;
@@ -47,80 +51,42 @@ class NotificationsController extends \TCG\Voyager\Http\Controllers\VoyagerBaseC
         //TODO:: Send notification
 
 
-        if($request->parent_id !=null){
-            $findUser = User::find($request->parent_id);
-            $response = Http::withHeaders([
+        $params = [
+            "parent_id"=>$request->parent_id,
+            "grade_id"=>$data->grade_id,
+            "notification"=>[
+                "title"=>$request->title,
+                "body"=>$request->desc
+            ]
+        ];
 
-                "Content-Type" => "application/json",
-                "Authorization" => "key=AAAAyk-VJjQ:APA91bHQA9AjI7d9n59swNEK-T74R1bv2UyUdzI8rLTOIW1PFENwys7xuVvI7bnhMqxtGKOVehfS-V3YROI3hpjMFWjA-uslieEFyPhi-3Vw7KHgMpgiAH95GiATvPfJ9FQ7Z3D3zDpv"
-            ])->post('https://fcm.googleapis.com/fcm/send', [
-                'to' => $findUser->fcm_token,
-                "priority" => "high",
-                "notification" => [
-                    "title" => $request->title,
-                    "body" => $request->desc,
-                    "sound" => "default"
-                ],
-                "data"=>[
-                    "type"=>"announcements"
-                ]
-            ]);
-        }else{
-            if ($data->grade_id != null) {
+        //Artisan::call("queue:work");
 
-                //send by grade
-
-                $students = DB::table("students")->where("level_id", "=", $data->grade_id)
-                    ->join("users", "students.parents_id", "=", "users.id")->get();
-
-                $uniqueStudents = $students->unique(function ($item) {
-
-                    return $item;
-                });
+        FcmNotificationsJob::dispatch($params);
 
 
-
-                foreach ($uniqueStudents as $token) {
-                    $response = Http::withHeaders([
-
-                        "Content-Type" => "application/json",
-                        "Authorization" => "key=AAAAyk-VJjQ:APA91bHQA9AjI7d9n59swNEK-T74R1bv2UyUdzI8rLTOIW1PFENwys7xuVvI7bnhMqxtGKOVehfS-V3YROI3hpjMFWjA-uslieEFyPhi-3Vw7KHgMpgiAH95GiATvPfJ9FQ7Z3D3zDpv"
-                    ])->post('https://fcm.googleapis.com/fcm/send', [
-                        'to' => $token->fcm_token,
-                        "priority" => "high",
-                        "notification" => [
-                            "title" => $request->title,
-                            "body" => $request->desc,
-                            "sound" => "default"
-                        ],
-                        "data"=>[
-                            "type"=>"announcements"
-                        ]
-                    ]);
-                }
-
-
-            }else{
-
-                $all_students = User::where("role_id","=","3")->get();
-
-                foreach ($all_students as $token) {
-                    $response = Http::withHeaders([
-
-                        "Content-Type" => "application/json",
-                        "Authorization" => "key=AAAAyk-VJjQ:APA91bHQA9AjI7d9n59swNEK-T74R1bv2UyUdzI8rLTOIW1PFENwys7xuVvI7bnhMqxtGKOVehfS-V3YROI3hpjMFWjA-uslieEFyPhi-3Vw7KHgMpgiAH95GiATvPfJ9FQ7Z3D3zDpv"
-                    ])->post('https://fcm.googleapis.com/fcm/send', [
-                        'to' => $token["fcm_token"],
-                        "priority" => "high",
-                        "notification" => [
-                            "title" => $request->title,
-                            "body" => $request->desc,
-                            "sound" => "default"
-                        ]
-                    ]);
-                }
-            }
-        }
+//        if($request->parent_id !=null){
+//
+//            //send to the parents
+//            $firebasefcm = new firebasefcm();
+//            $firebasefcm->pushForSingleUser($request->parent_id,NotificationsData::custom(["title"=>$request->title,"body"=>$request->desc]));
+//
+//        }else{
+//            if ($data->grade_id != null) {
+//
+//                //send by grade
+//
+//
+//                $firebasefcm = new firebasefcm();
+//                $firebasefcm->pushForGrade($data["grade_id"],NotificationsData::custom(["title"=>$request->title,"body"=>$request->desc]));
+//
+//
+//            }else{
+//                $firebasefcm = new firebasefcm();
+//                $firebasefcm->pushForAll(NotificationsData::custom(["title"=>$request->title,"body"=>$request->desc]));
+//
+//            }
+//        }
 
 
         if (!$request->has('_tagging')) {

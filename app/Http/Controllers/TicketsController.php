@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Utilities\FirebaseFcm;
+use App\Utilities\NotificationsData;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -65,23 +67,10 @@ class TicketsController extends  \TCG\Voyager\Http\Controllers\VoyagerBaseContro
 
         $user_id = $data->user_id;
 
-        $user_fcm_token = User::find($user_id)->fcm_token;
-        $response = Http::withHeaders([
+        $firebasefcm = new firebasefcm();
+        $firebasefcm->pushForSingleUser($user_id,NotificationsData::ticket($data->reply));
 
-            "Content-Type"=>"application/json",
-            "Authorization"=>"key=AAAAyk-VJjQ:APA91bHQA9AjI7d9n59swNEK-T74R1bv2UyUdzI8rLTOIW1PFENwys7xuVvI7bnhMqxtGKOVehfS-V3YROI3hpjMFWjA-uslieEFyPhi-3Vw7KHgMpgiAH95GiATvPfJ9FQ7Z3D3zDpv"
-        ])->post('https://fcm.googleapis.com/fcm/send', [
-            'to' => $user_fcm_token,
-            "priority"=>"high",
-            "notification"=>[
-                "title"=>"تمت الاجابة على تذكرتك",
-                "body"=>$data->reply,
-                "sound"=>"default"
-            ],
-            "data"=>[
-                "type"=>"ticket"
-            ]
-        ]);
+
 
 
         return $redirect->with([

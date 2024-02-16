@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Utilities\FirebaseFcm;
+use App\Utilities\NotificationsData;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -63,25 +66,13 @@ class AppointmentsController extends \TCG\Voyager\Http\Controllers\VoyagerBaseCo
             $redirect = redirect()->back();
         }
 
+
+        $date = Carbon::parse($data->book_at)->format("Y-m-d");
+        $time = Carbon::parse($data->book_at)->format("H:i:s");
+
         $user_id = $data->user_id;
-
-        $user_fcm_token = User::find($user_id)->fcm_token;
-        $response = Http::withHeaders([
-
-            "Content-Type"=>"application/json",
-            "Authorization"=>"key=AAAAyk-VJjQ:APA91bHQA9AjI7d9n59swNEK-T74R1bv2UyUdzI8rLTOIW1PFENwys7xuVvI7bnhMqxtGKOVehfS-V3YROI3hpjMFWjA-uslieEFyPhi-3Vw7KHgMpgiAH95GiATvPfJ9FQ7Z3D3zDpv"
-        ])->post('https://fcm.googleapis.com/fcm/send', [
-            'to' => $user_fcm_token,
-            "priority"=>"high",
-            "notification"=>[
-                "title"=>"تم تحديد الموعد",
-                "body"=>"بتاريخ: " . $data->book_at,
-                "sound"=>"default"
-            ],
-            "data"=>[
-                "type"=>"appointment"
-            ]
-        ]);
+        $firebasefcm = new firebasefcm();
+        $firebasefcm->pushForSingleUser($user_id,NotificationsData::appointment(["date"=>$date,"hour"=>$time]));
 
 
         return $redirect->with([

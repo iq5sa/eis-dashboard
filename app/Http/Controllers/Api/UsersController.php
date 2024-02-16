@@ -40,8 +40,12 @@ class UsersController extends BaseController
     public function login(Request $request){
 
 
+
         if(Auth::attempt(['login_code' => $request->email, 'password' => $request->password])){
             $user = Auth::user();
+            $students = $user->load(["students.grade","students.classroom"]);
+
+
             $success['token'] =  $user->createToken('eisToken')->plainTextToken;
             $success['id'] =  $user->id;
             $success['name'] =  $user->name;
@@ -50,14 +54,21 @@ class UsersController extends BaseController
             $success['avatar'] =  $user->avatar;
             $success['login_code'] =  $user->login_code;
             $success['en_name'] =  $user->en_name;
+            $success["user"] = $students;
 
-//            $user->fcm_token = $request->fcm_token;
             $user->save();
 
-            $fcmTokens = new FcmTokens();
-            $fcmTokens->fcm_token = $request->fcm_token;
-            $fcmTokens->parents_id = $success["id"];
-            $fcmTokens->save();
+            if ($success["id"] !="" || $success["id"] !=null){
+                $tokens = FcmTokens::where("fcm_token","=",$request->fcm_token);
+                if($tokens->count() ==0) {
+                    $fcmTokens = new FcmTokens();
+                    $fcmTokens->fcm_token = $request->fcm_token;
+                    $fcmTokens->parents_id = $success["id"];
+                    $fcmTokens->save();
+
+                }
+            }
+
 
 
             return $this->sendResponse($success, 'User login successfully.');
